@@ -6,4 +6,9 @@ fn main() {
 
     board.init_board_from_fen(fen);
     board.print_board();
+    
+    for x in board.get_legal_moves(0x60) {
+        print!("{} ", board::hex_to_chess_notation(x));
+    }
+    println!("");
 }

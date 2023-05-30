@@ -22,23 +22,27 @@ pub struct Board {
 }
 
 impl Board {
+    // construct an empty board upon instantiation
     pub fn new() -> Self {
         Board {
             squares: [Piece::Empty; BOARD_SIZE],
         }
     }
 
+    // get piece (type) from an index 
     pub fn get_piece(&self, index: usize) -> Piece {
         self.squares[index]
     }
 
+    // set piece (type) from a index
     pub fn set_piece(&mut self, index: usize, piece: Piece) {
         self.squares[index] = piece;
     }
 
+    // print visual board in terminal
     pub fn print_board(&self) {
-        for rank in 0..8 {
-            for file in 0..8 {
+        for rank in (0..=7).rev() {
+            for file in (0..=7).rev() {
                 let index = rank * 16 + file;
                 match self.squares[index] {
                     Piece::Empty => print!("- "),
@@ -49,14 +53,15 @@ impl Board {
         }
     }
 
+    // initialize a board given a FEN string
     pub fn init_board_from_fen(&mut self, fen: &str) {
-        let mut rank = 0;
+        let mut rank = 7;
         let mut file = 0;
 
         for c in fen.chars() {
             match c {
                 '/' => {
-                    rank += 1;
+                    rank -= 1;
                     file = 0;
                 }
                 '1'..='8' => {
@@ -118,6 +123,38 @@ impl Board {
             }
         }
     }
+   
+    pub fn get_legal_moves(&self, position: usize) -> Vec<usize> {
+        let mut legal_moves = Vec::new();
+
+        let piece_type = self.get_piece(position);
+        let file = position & 0xF; 
+        let rank = (position & 0xF0) >> 4; // gets rank bits with bit manipulation
+
+        // legal moves by piece type
+        match piece_type {
+            // pawns
+            Piece::WPawn => {
+                if rank < 7 {
+                    legal_moves.push(position + 0x10);
+                }
+                if rank < 6 {
+                    legal_moves.push(position + 0x20);
+                }
+            }
+            Piece::BPawn => {
+                if rank > 0 {
+                    legal_moves.push(position - 0x10);
+                }
+                if rank > 1 {
+                    legal_moves.push(position - 0x20);
+                }
+            }
+            _ => {}
+        }
+        
+        legal_moves
+    }
 }
 
 fn get_piece_symbol(piece: Piece) -> String {
@@ -135,5 +172,28 @@ fn get_piece_symbol(piece: Piece) -> String {
         Piece::BRook => "♜".to_string(),
         Piece::BQueen => "♛".to_string(),
         Piece::BKing => "♚".to_string(),
+    }
+}
+
+pub fn hex_to_chess_notation(position: usize) -> String {
+    let rank = ((position & 0xF0) >> 4) + 1;
+
+    let chess_rank = rank.to_string();
+    file_to_chess_notation(position) + &chess_rank
+}
+
+fn file_to_chess_notation(position: usize) -> String {
+    let file = position & 0xF; 
+    
+    match file {
+        0 => "a".to_string(),
+        1 => "b".to_string(),
+        2 => "c".to_string(),
+        3 => "d".to_string(),
+        4 => "e".to_string(),
+        5 => "f".to_string(),
+        6 => "g".to_string(),
+        7 => "h".to_string(),
+        _ => panic!("Invalid file"),
     }
 }
