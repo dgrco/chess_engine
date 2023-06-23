@@ -1,14 +1,35 @@
+use std::time::Instant;
+
 mod board;
+mod search;
 
 fn main() {
-    let mut board = board::Board::new();
-    let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    let board = &mut board::Board::new();
+    let mut position_counter = PositionCounter::new();
+    let mut line = String::new();
+    println!("\nPlease input a depth: ");
+    std::io::stdin().read_line(&mut line).expect("failed to read from stdin");
+    let depth = match line.trim().parse::<usize>() {
+        Ok(i) => i,
+        Err(_) => {println!("Invalid depth"); 0},
+    };
 
-    board.init_board_from_fen(fen);
-    board.print_board();
-    
-    for x in board.get_legal_moves(0x60) {
-        print!("{} ", board::hex_to_chess_notation(x));
+    let start = Instant::now();
+    println!("{}", search::search(board, depth, true, &mut position_counter));
+
+    println!("Elapsed time: {:.2?}", start.elapsed());
+}
+
+pub struct PositionCounter {
+    positions: usize,
+}
+
+impl PositionCounter {
+    pub fn new() -> Self {
+        PositionCounter { positions: 0 }
     }
-    println!("");
+
+    pub fn add(&mut self) {
+        self.positions += 1;
+    }
 }
