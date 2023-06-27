@@ -15,7 +15,7 @@ fn main() {
     // };
 
     let start = Instant::now();
-    println!("{}", search::search(board, 3, true, &mut position_counter));
+    println!("{}", search::search(board, 4, true, &mut position_counter));
 
     println!("Elapsed time: {:.2?}", start.elapsed());
 }

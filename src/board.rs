@@ -638,6 +638,21 @@ impl Board {
             all_moves
         }
 
+    // helpers for get_straights and get_diagonals
+    fn add_position_if_valid(&self, list: &mut Vec<usize>, original_file: usize,
+                             original_rank: usize, current_file: usize, current_rank: usize) -> bool {
+        if self.square_empty(current_file, current_rank) {
+            list.push(file_rank_to_hex(current_file, current_rank));
+            true
+        } else {
+            if self.is_capturable(file_rank_to_hex(original_file, original_rank),
+            file_rank_to_hex(current_file, current_rank)) {
+                list.push(file_rank_to_hex(current_file, current_rank));
+            }
+            false
+        }
+    }
+
     pub fn get_straights(&self, rank: usize, file: usize) -> Vec<usize> {
         let mut straights = Vec::new();
         let mut current_file = file;
@@ -646,59 +661,43 @@ impl Board {
         // up
         while current_rank < 7 {
             current_rank += 1;
-            if self.square_empty(current_file, current_rank) 
-                || self.is_capturable(file_rank_to_hex(file, rank), 
-                                      file_rank_to_hex(current_file, current_rank)){
-                    straights.push(file_rank_to_hex(current_file, current_rank))
-                } else {
-                    break;
-                }
+            if !self.add_position_if_valid(&mut straights, file, rank, current_file, current_rank) {
+                break;
+            }
         }
         // down
         current_file = file;
         current_rank = rank;
         while current_rank > 0 {
             current_rank -= 1;
-            if self.square_empty(current_file, current_rank) 
-                || self.is_capturable(file_rank_to_hex(file, rank), 
-                                      file_rank_to_hex(current_file, current_rank)){
-                    straights.push(file_rank_to_hex(current_file, current_rank))
-                } else {
-                    break;
-                }
+            if !self.add_position_if_valid(&mut straights, file, rank, current_file, current_rank) {
+                break;
+            }
         }
         // left
         current_file = file;
         current_rank = rank;
         while current_file > 0 {
             current_file -= 1;
-            if self.square_empty(current_file, current_rank) 
-                || self.is_capturable(file_rank_to_hex(file, rank), 
-                                      file_rank_to_hex(current_file, current_rank)){
-                    straights.push(file_rank_to_hex(current_file, current_rank))
-                } else {
-                    break;
-                }
+            if !self.add_position_if_valid(&mut straights, file, rank, current_file, current_rank) {
+                break;
+            }
         }
         // right
         current_file = file;
         current_rank = rank;
         while current_file < 7 {
             current_file += 1;
-            if self.square_empty(current_file, current_rank) 
-                || self.is_capturable(file_rank_to_hex(file, rank), 
-                                      file_rank_to_hex(current_file, current_rank)){
-                    straights.push(file_rank_to_hex(current_file, current_rank))
-                } else {
-                    break;
-                }
+            if !self.add_position_if_valid(&mut straights, file, rank, current_file, current_rank) {
+                break;
+            }
         }
 
         straights
     }
 
     pub fn get_diagonals(&self, rank: usize, file: usize) -> Vec<usize> {
-        let mut straights = Vec::new();
+        let mut diagonals = Vec::new();
         let mut current_file = file;
         let mut current_rank = rank;
 
@@ -706,13 +705,9 @@ impl Board {
         while current_rank > 0 && current_file > 0 {
             current_file -= 1;
             current_rank -= 1;
-            if self.square_empty(current_file, current_rank)
-                || self.is_capturable(file_rank_to_hex(file, rank), 
-                                      file_rank_to_hex(current_file, current_rank)){
-                    straights.push(file_rank_to_hex(current_file, current_rank))
-                } else {
-                    break;
-                }
+            if !self.add_position_if_valid(&mut diagonals, file, rank, current_file, current_rank) {
+                break;
+            }
         }
 
         // down-right
@@ -721,13 +716,9 @@ impl Board {
         while current_rank > 0 && current_file < 7 {
             current_file += 1;
             current_rank -= 1;
-            if self.square_empty(current_file, current_rank) 
-                || self.is_capturable(file_rank_to_hex(file, rank), 
-                                      file_rank_to_hex(current_file, current_rank)) {
-                    straights.push(file_rank_to_hex(current_file, current_rank))
-                } else {
-                    break;
-                }
+            if !self.add_position_if_valid(&mut diagonals, file, rank, current_file, current_rank) {
+                break;
+            }
         }
 
         // up-left
@@ -736,13 +727,9 @@ impl Board {
         while current_rank < 7 && current_file > 0 {
             current_file -= 1;
             current_rank += 1;
-            if self.square_empty(current_file, current_rank) 
-                || self.is_capturable(file_rank_to_hex(file, rank), 
-                                      file_rank_to_hex(current_file, current_rank)) {
-                    straights.push(file_rank_to_hex(current_file, current_rank))
-                } else {
-                    break;
-                }
+            if !self.add_position_if_valid(&mut diagonals, file, rank, current_file, current_rank) {
+                break;
+            }
         }
 
         // up-right
@@ -751,16 +738,12 @@ impl Board {
         while current_rank < 7 && current_file < 7 {
             current_file += 1;
             current_rank += 1;
-            if self.square_empty(current_file, current_rank) 
-                || self.is_capturable(file_rank_to_hex(file, rank), 
-                                      file_rank_to_hex(current_file, current_rank)){
-                    straights.push(file_rank_to_hex(current_file, current_rank))
-                } else {
-                    break;
-                }
+            if !self.add_position_if_valid(&mut diagonals, file, rank, current_file, current_rank) {
+                break;
+            }
         }       
 
-        straights
+        diagonals
     }
 
     fn square_empty(&self, file: usize, rank: usize) -> bool {
@@ -916,4 +899,3 @@ pub fn file_rank_from_hex(position: usize) -> (usize, usize) {
 pub fn file_rank_to_hex(file: usize, rank: usize) -> usize {
     rank * 16 + file
 }
-
