@@ -7,6 +7,8 @@ pub fn search(board: &Board, depth: usize,  maximizing_player: bool,
     if depth == 0 {
         position_counter.add();
         println!("{}", position_counter.positions);
+        board.print_board();
+        println!("{}", board.get_fen());
         return evaluate(board);
     }
 
